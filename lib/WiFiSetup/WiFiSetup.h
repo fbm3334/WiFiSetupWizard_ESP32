@@ -26,7 +26,7 @@ struct NetworkData {
 /** \class WiFiSetup
  * \brief Sets up WiFi connections on the ESP32
  * \author Finn Beckitt-Marshall (fbm3334)
- * \date 31st May 2020
+ * \date June 2020
  */
 
 class WiFiSetup {
@@ -159,6 +159,17 @@ class WiFiSetup {
         /** Save the network settings to the ESP32 ROM when network connection
          * is successful */
         void save_to_rom();
+
+        /** Load network settings from ROM and attempt to connect
+         * \return True if connection successful, false if not
+         */
+        bool load_connect();
+
+        /** Allows the user to re-configure the network on boot if settings
+         *  are saved 
+         * \return True if networks need reconfiguring, false otherwise
+         * */
+        bool reconfig_prompt();
 
     private:
         // Hardware timer - used for connection timeout

@@ -27,15 +27,18 @@ void WiFiSetup::init() {
     if (prefs.getString("SSID", "").length() == 0) {
         Serial.println("SSID not stored on ESP32 ROM");
     } else {
-        Serial.println(prefs.getString("SSID", ""));
+        /* Serial.println(prefs.getString("SSID", ""));
         Serial.println(prefs.getString("Pass", ""));
-        Serial.println(prefs.getBool("isWPA"));
+        Serial.println(prefs.getBool("isWPA")); */
     }
 }
 
 int WiFiSetup::scan_networks() {
     // Scan the networks and print the number of networks found
     int number_networks = WiFi.scanNetworks();
+    Serial.print("WiFi Status");
+    Serial.println(WiFi.status());
+
     Serial.print("Number of networks found: ");
     Serial.println(number_networks);
 
@@ -131,8 +134,10 @@ void WiFiSetup::print_networks_simple() {
 void WiFiSetup::refresh_networks() {
     // Clear the network vector
     _network_data_vector.clear();
+    Serial.println("Networks cleared.");
     // Rescan and print WiFi networks to the terminal
     scan_networks();
+    
     // Send an ASCII form feed to clear terminal data
     //char delete_term = 12;
     //Serial.print(delete_term);
@@ -208,14 +213,18 @@ void WiFiSetup::enter_passphrase() {
     // Print message to enter passphrase
     Serial.print("Enter network passphrase: ");
 
-    while (Serial.available() == false) {
-        // Max length of WPA passphrase is 63 characters, and waits for CR
-        _length_wpa_pass = Serial.readBytesUntil(13, _wpa_passphrase, 63);
-        _wpa_passphrase[_length_wpa_pass] = '\0';
+    bool data_ready = false;
+    while (data_ready == false) {
+        data_ready = read_chars_serial(_wpa_passphrase, 64);
     }
+    data_ready = false;
 }
 
 void WiFiSetup::connect_to_network() {
+    // Initialise hardware timer to null
+    timer = NULL;
+    // Set timeout flag to false
+    connect_timeout = false;
     _accepted_encryption = false;
     // Select the network from the list
     _selected_network = select_network();
@@ -230,11 +239,16 @@ void WiFiSetup::connect_to_network() {
     } else if (encryption_type == "WEP" || encryption_type == "WPA2 Enterprise") {
         Serial.println("Network type is not currently supported.");
     } else {
+        _wpa_encryption = true;
         enter_passphrase();
         WiFi.begin(_selected_ssid.c_str(), _wpa_passphrase, 0, NULL, true);
-        start_timeout_timer(10);
         _accepted_encryption = true;
+        start_timeout_timer(10);
     }
+
+    /* if (_accepted_encryption == true) {
+        start_timeout_timer(10);
+    } */
     
     while ((WiFi.status() != WL_CONNECTED) && (_accepted_encryption == true) &&
             (connect_timeout == false)) {
@@ -372,7 +386,7 @@ void WiFiSetup::end_timeout_timer() {
 }
 
 char WiFiSetup::get_char() {
-    char return_char;
+    char return_char = 0;
     if (Serial.available() > 0) {
         return_char = Serial.read();
     }
@@ -388,6 +402,7 @@ void WiFiSetup::setup_wizard() {
 
     // Refresh the networks
     refresh_networks();
+
 
     // User prompt - 'a' for advanced view, 'd' to connect to a network using
     // DHCP and 's' to connect to a network using a static IP
@@ -435,7 +450,73 @@ void WiFiSetup::show_adv_network_view() {
 }
 
 void WiFiSetup::save_to_rom() {
+    prefs.begin("WiFiSettings", false);
+    Serial.println("Saving WiFi settings to ROM...");
     prefs.putString("SSID", _selected_ssid);
-    prefs.putString("Pass", _wpa_passphrase);
+    if (_wpa_encryption == true) { prefs.putString("Pass", _wpa_passphrase); }
     prefs.putBool("is_WPA", _wpa_encryption);
+    prefs.end();
+}
+
+bool WiFiSetup::load_connect() {
+    // Show reconfig prompt
+    if (reconfig_prompt()) {
+        return false;
+    }
+    // Initialise hardware timer to null
+    timer = NULL;
+    // Set timeout flag to false
+    connect_timeout = false;
+    // Get the variables from the ROM
+    _selected_ssid = prefs.getString("SSID", "");
+    _wpa_encryption = prefs.getBool("is_WPA");
+    Serial.print("SSID: ");
+    Serial.println(_selected_ssid);
+    Serial.print("WPA: ");
+    Serial.println(_wpa_encryption);
+    Serial.print("Pass: ");
+    Serial.println(prefs.getString("Pass", ""));
+    if (_wpa_encryption == true) { 
+        (prefs.getString("Pass", "")).c_str();
+        WiFi.begin(_selected_ssid.c_str(), prefs.getString("Pass", "").c_str(),
+                   0, NULL, true);
+    } else {
+        WiFi.begin(_selected_ssid.c_str(), NULL, 0, NULL, true);
+    }
+    
+    // Attempt to connect using the stored variables
+    start_timeout_timer(10);
+    Serial.println("Establishing connection to network");
+    while ((WiFi.status() != WL_CONNECTED) && (connect_timeout == false)) {
+        delay(1000);
+        Serial.print(".");
+    }
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.print(WiFi.localIP());
+        return true;
+        
+    }
+    prefs.end();
+    return false;
+}
+
+bool WiFiSetup::reconfig_prompt() {
+    // Print the reconfigure prompt text
+    Serial.println("Press 'r' to reconfigure networks...");
+    // Initialise hardware timer to null
+    timer = NULL;
+    // Set timeout flag to false
+    connect_timeout = false;
+    // Start timeout timer - 5 seconds
+    start_timeout_timer(5);
+    char received_char;
+    bool reconfig = false;
+    while (connect_timeout == false && reconfig == false) {
+        // Capture serial input
+        received_char = get_char();
+        if (received_char == 'r') {
+            reconfig = true;
+        }
+    }
+    return reconfig;
 }

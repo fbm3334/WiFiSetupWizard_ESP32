@@ -20,6 +20,17 @@ void WiFiSetup::init() {
     timer = NULL;
     // Set timeout flag to false
     connect_timeout = false;
+    // Initialise preferences
+    prefs.begin("WiFiSettings", false);
+
+    // Check whether the SSID field is empty by checking string length
+    if (prefs.getString("SSID", "").length() == 0) {
+        Serial.println("SSID not stored on ESP32 ROM");
+    } else {
+        Serial.println(prefs.getString("SSID", ""));
+        Serial.println(prefs.getString("Pass", ""));
+        Serial.println(prefs.getBool("isWPA"));
+    }
 }
 
 int WiFiSetup::scan_networks() {
@@ -128,49 +139,15 @@ void WiFiSetup::refresh_networks() {
     print_networks_simple();
 }
 
-String WiFiSetup::append_serial_input(String previous_string, bool hidden) {
-    char input = 255;
-    // Read the serial input and process it
-    //Serial.print("Current value of input = ");
-    //Serial.println(int(input));
-    while (input == 255) {
-        // Infinite loop until input is not -1 (represents nothing entered)
-        input = (char) Serial.read();
+int WiFiSetup::enter_number() {
+    bool data_ready = false;
+    char num_array[6]; // Max int is 65536 so 6 characters inc. null terminator
+    while (data_ready == false) {
+        data_ready = read_chars_serial(num_array, 6);
     }
-    if (input == 8) {
-        // Backspace pressed - remove last character from string
-        //Serial.println("Bksp pressed");
-        unsigned int string_len = previous_string.length();
-        //Serial.println(string_len);
-        char backspace_char = 8;
-        Serial.print(backspace_char);
-        previous_string.remove((string_len - 1), 1); // Remove the last character
-        return previous_string;
-    } else {
-        //Serial.println("Char pressed");
-        previous_string.concat(input); // Concatenate the string
-        if (hidden == true) {
-            Serial.print("*");
-        } else {
-            Serial.print(input);
-        }
-        return previous_string;
-    }
-
-}
-
-String WiFiSetup::enter_string(bool hidden) {
-    // Define the string
-    String string = "";
-    // On CoolTerm, ASCII code 10 is used for enter
-    while (1) {
-        //Serial.println("New char entered");
-        string = append_serial_input(string, hidden);
-        if (Serial.read() == 10) {
-            return string;
-        }
-    }
-    return string;
+    data_ready = false;
+    int number_entered = atoi(num_array);
+    return number_entered;
 }
 
 VerboseSigStrength WiFiSetup::dbm_to_verbose_signal(long sig_strength_dbm) {
@@ -216,8 +193,7 @@ int WiFiSetup::select_network() {
     while ((network_num <= 0) || (network_num > _network_data_vector.size())) {
         // User inputs a number of the network they want to connect to
         Serial.print("Type in the network number and press Enter to confirm: ");
-        String network_num_string = enter_string(false);
-        network_num = network_num_string.toInt();
+        network_num = enter_number();
         Serial.print("Network number selected: ");
         Serial.println(network_num);
     }
@@ -264,6 +240,11 @@ void WiFiSetup::connect_to_network() {
             (connect_timeout == false)) {
         delay(1000);
         Serial.println("Establishing connection to network...");
+    }
+    // If the connection is successful, save settings to ROM
+    if (WiFi.status() == WL_CONNECTED) {
+        save_to_rom();
+        prefs.end();
     }
 }
 
@@ -429,6 +410,7 @@ void WiFiSetup::setup_wizard() {
     } else if (received_char == 'd') {
         connect_to_network();
     } else if (received_char == 's') {
+        _use_static_ip = true;
         static_ip_dns();
         connect_to_network();
     } else if (received_char == 'r') {
@@ -450,4 +432,10 @@ void WiFiSetup::show_adv_network_view() {
             valid_char = true;
         }
     }
+}
+
+void WiFiSetup::save_to_rom() {
+    prefs.putString("SSID", _selected_ssid);
+    prefs.putString("Pass", _wpa_passphrase);
+    prefs.putBool("is_WPA", _wpa_encryption);
 }

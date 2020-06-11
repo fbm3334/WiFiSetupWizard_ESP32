@@ -2,6 +2,7 @@
 #define WIFISETUP_H
 
 #include <Arduino.h>
+#include <Preferences.h>
 #include <WiFi.h>
 #include <vector>
 #include <cstdio>
@@ -29,6 +30,8 @@ struct NetworkData {
  */
 
 class WiFiSetup {
+
+    Preferences prefs;
 
     public:
         /** Timeout flag */
@@ -73,19 +76,10 @@ class WiFiSetup {
         /** Refreshes WiFi networks when 'r' pressed in terminal */
         void refresh_networks();
 
-        /** Appends serial input to the provided string, and removes last
-         *  character if backspace pressed
-         * \param previous_string   Previous string (to append to)
-         * \param hidden            True if string hidden (i.e. passphrase)
-         * \return String with new character appended
+        /** Allows the user to enter a number into the serial console
+         * \return Number that the user has entered
          */
-        String append_serial_input(String previous_string, bool hidden);
-
-        /** Allows the user to enter a string into the terminal
-         * \param hidden    True if string hidden (i.e. passphrase)
-         * \return String with data
-         */
-        String enter_string(bool hidden);
+        int enter_number();
 
         /** Converts the dBm signal strength into a verbose signal strength
          * (stored using VerboseSigStrength enum type)
@@ -162,6 +156,10 @@ class WiFiSetup {
          * the space bar to exit */
         void show_adv_network_view();
 
+        /** Save the network settings to the ESP32 ROM when network connection
+         * is successful */
+        void save_to_rom();
+
     private:
         // Hardware timer - used for connection timeout
         static hw_timer_t * _timer;
@@ -186,6 +184,9 @@ class WiFiSetup {
 
         // Flag for accepted encryption type
         bool _accepted_encryption;
+
+        // Flag for WPA encryption
+        bool _wpa_encryption;
     
         // Flag for static IP/DHCP - true for static IP
         bool _use_static_ip;
@@ -204,6 +205,7 @@ class WiFiSetup {
 
         // DNS server 2
         IPAddress _dns_server_2;
+
         
 };
 

@@ -63,8 +63,7 @@ void WiFiSetup::create_network_vector(int number_networks) {
         current_network.network_signal_strength = WiFi.RSSI(i);
         current_network.signal_verbose = dbm_to_verbose_signal(WiFi.RSSI(i));
         current_network.network_mac = WiFi.BSSIDstr(i);
-        current_network.network_type_libform = WiFi.encryptionType(i);
-        current_network.network_type = translate_encryption_type(WiFi.encryptionType(i));
+        current_network.network_enc_type = WiFi.encryptionType(i);
         current_network.network_chan = WiFi.channel(i);
         // Append this to the end of the vector
         _network_data_vector.push_back(current_network);
@@ -79,15 +78,20 @@ void WiFiSetup::print_networks() {
         Serial.println("----------------------------------------");
         Serial.print("SSID:                     ");
         Serial.println((*it).network_ssid);
+
         Serial.print("Signal strength (dBm):    ");
         Serial.println((*it).network_signal_strength);
+
         Serial.print("Signal strength:          ");
         print_verbose_signal((*it).signal_verbose);
         Serial.println("");
+
         Serial.print("MAC address:              ");
         Serial.println((*it).network_mac);
+        // To print the encyrption type, it needs to be translated
         Serial.print("Network encryption type:  ");
-        Serial.println((*it).network_type);
+        Serial.println(translate_encryption_type((*it).network_enc_type));
+
         Serial.print("Channel:                  ");
         Serial.println((*it).network_chan);
     }
@@ -219,13 +223,15 @@ void WiFiSetup::connect_to_network() {
     _selected_network = select_network();
     Serial.println("Connecting to network...");
 
-    String encryption_type = _network_data_vector[_selected_network].network_type;
+    wifi_auth_mode_t encryption_type = 
+        _network_data_vector[_selected_network].network_enc_type;
 
-    if (encryption_type == "WEP" || encryption_type == "WPA2 Enterprise") {
+    if (encryption_type == WIFI_AUTH_WEP || 
+        encryption_type == WIFI_AUTH_WPA2_ENTERPRISE) {
             Serial.println("Network type is not currently supported.");
             return;
 
-    } else if (encryption_type == "Unencrypted") { // Open networks
+    } else if (encryption_type == WIFI_AUTH_OPEN) { // Open networks
         Serial.println("Selected network is open, no passphrase is required.");
         WiFi.begin(_selected_ssid.c_str(), NULL, 0, NULL, true);
         start_timeout_timer(10);

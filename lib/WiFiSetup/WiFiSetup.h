@@ -18,8 +18,7 @@ struct NetworkData {
     long network_signal_strength; /**< Network signal strength in dBm */
     VerboseSigStrength signal_verbose; /**< Verbose signal strength (Excellent, Good, Fair, Weak) */
     String network_mac; /**< Network MAC address, stored as string */
-    wifi_auth_mode_t network_type_libform; /**< Network encryption type stored as wifi_auth_mode_t */
-    String network_type; /**< Network encryption type */
+    wifi_auth_mode_t network_enc_type; /**< Network encryption type */
     int32_t network_chan; /**< Network channel */
 };
 

@@ -16,21 +16,16 @@ WiFiSetup::~WiFiSetup() {
 void WiFiSetup::init() {
     // Automatically defaults to DHCP
     _use_static_ip = false;
+    // Set the DNS flag to false
+    _custom_dns = false;
+    // Set WPA to false
+    _wpa_encryption = false;
     // Initialise hardware timer to null
     timer = NULL;
     // Set timeout flag to false
     connect_timeout = false;
-    // Initialise preferences
-    prefs.begin("WiFiSettings", false);
-
-    // Check whether the SSID field is empty by checking string length
-    if (prefs.getString("SSID", "").length() == 0) {
-        Serial.println("SSID not stored on ESP32 ROM");
-    } else {
-        /* Serial.println(prefs.getString("SSID", ""));
-        Serial.println(prefs.getString("Pass", ""));
-        Serial.println(prefs.getBool("isWPA")); */
-    }
+    // Set attempt to connect using NVS settings flag to false
+    _attempt_connect_nvs = false;
 }
 
 int WiFiSetup::scan_networks() {
@@ -77,8 +72,7 @@ void WiFiSetup::create_network_vector(int number_networks) {
         current_network.network_signal_strength = WiFi.RSSI(i);
         current_network.signal_verbose = dbm_to_verbose_signal(WiFi.RSSI(i));
         current_network.network_mac = WiFi.BSSIDstr(i);
-        current_network.network_type_libform = WiFi.encryptionType(i);
-        current_network.network_type = translate_encryption_type(WiFi.encryptionType(i));
+        current_network.network_enc_type = WiFi.encryptionType(i);
         current_network.network_chan = WiFi.channel(i);
         // Append this to the end of the vector
         _network_data_vector.push_back(current_network);
@@ -93,15 +87,20 @@ void WiFiSetup::print_networks() {
         Serial.println("----------------------------------------");
         Serial.print("SSID:                     ");
         Serial.println((*it).network_ssid);
+
         Serial.print("Signal strength (dBm):    ");
         Serial.println((*it).network_signal_strength);
+
         Serial.print("Signal strength:          ");
         print_verbose_signal((*it).signal_verbose);
         Serial.println("");
+
         Serial.print("MAC address:              ");
         Serial.println((*it).network_mac);
+        // To print the encyrption type, it needs to be translated
         Serial.print("Network encryption type:  ");
-        Serial.println((*it).network_type);
+        Serial.println(translate_encryption_type((*it).network_enc_type));
+
         Serial.print("Channel:                  ");
         Serial.println((*it).network_chan);
     }
@@ -218,55 +217,63 @@ void WiFiSetup::enter_passphrase() {
         data_ready = read_chars_serial(_wpa_passphrase, 64);
     }
     data_ready = false;
+    int length_pass = strlen(_wpa_passphrase);
+    #ifdef STRING_DEBUG
+        Serial.print("Length=");
+        Serial.println(length_pass);
+        // Compare the string contents
+        char correct_pass[6] = "\ntest";
+        Serial.println(strncmp(_wpa_passphrase, correct_pass, 1));
+    #endif
+    _wpa_passphrase[length_pass] = '\0';
+    Serial.println(_wpa_passphrase);
 }
 
 void WiFiSetup::connect_to_network() {
-    // Initialise hardware timer to null
-    timer = NULL;
-    // Set timeout flag to false
-    connect_timeout = false;
-    _accepted_encryption = false;
     // Select the network from the list
     _selected_network = select_network();
     Serial.println("Connecting to network...");
 
-    String encryption_type = _network_data_vector[_selected_network].network_type;
+    wifi_auth_mode_t encryption_type = 
+        _network_data_vector[_selected_network].network_enc_type;
 
-    if (encryption_type == "Unencrypted") {
+    if (encryption_type == WIFI_AUTH_WEP || 
+        encryption_type == WIFI_AUTH_WPA2_ENTERPRISE) {
+            Serial.println("Network type is not currently supported.");
+            return;
+
+    } else if (encryption_type == WIFI_AUTH_OPEN) { // Open networks
+        // Set WPA flag to false
+        _wpa_encryption = false;
         Serial.println("Selected network is open, no passphrase is required.");
         WiFi.begin(_selected_ssid.c_str(), NULL, 0, NULL, true);
-        _accepted_encryption = true;
-    } else if (encryption_type == "WEP" || encryption_type == "WPA2 Enterprise") {
-        Serial.println("Network type is not currently supported.");
-    } else {
+        start_timeout_timer(10);
+    } else { // WPA/WPA2 networks
+        // Set WPA flag to true
         _wpa_encryption = true;
         enter_passphrase();
         WiFi.begin(_selected_ssid.c_str(), _wpa_passphrase, 0, NULL, true);
-        _accepted_encryption = true;
         start_timeout_timer(10);
+    }
+    _conn_type = create_conn_type_value();
+    Serial.print(_conn_type);
+    display_establishing_conn_prompt();
+
+    // Once connected, save the values to NVS
+    if (WiFi.status() == WL_CONNECTED) {
+        save_settings_to_nvs();
+    } else {
+        // Call restart of ESP32 - stops looping
+        ESP.restart();
     }
 
-    /* if (_accepted_encryption == true) {
-        start_timeout_timer(10);
-    } */
-    
-    while ((WiFi.status() != WL_CONNECTED) && (_accepted_encryption == true) &&
-            (connect_timeout == false)) {
-        delay(1000);
-        Serial.println("Establishing connection to network...");
-    }
-    // If the connection is successful, save settings to ROM
-    if (WiFi.status() == WL_CONNECTED) {
-        save_to_rom();
-        prefs.end();
-    }
 }
 
 String WiFiSetup::get_ssid() { return _selected_ssid; }
 
 String WiFiSetup::get_wpa_passphrase() { return _wpa_passphrase; }
 
-IPAddress WiFiSetup::input_ip_address() {
+unsigned long WiFiSetup::input_ip_address() {
     // Defining octet variables
     uint8_t octet_1;
     uint8_t octet_2;
@@ -292,16 +299,13 @@ IPAddress WiFiSetup::input_ip_address() {
         }
     }
 
-    #ifdef PRINT_IP
-        Serial.println(ip_address_string);
-        Serial.println(num_items);
-        Serial.println(octet_1);
-        Serial.println(octet_2);
-        Serial.println(octet_3);
-        Serial.println(octet_4);
-    #endif
+    unsigned long ip_addr = 0;
+    ip_addr += octet_1;
+    ip_addr += octet_2 << 8;
+    ip_addr += octet_3 << 16;
+    ip_addr += octet_4 << 24;
 
-    return IPAddress(octet_1, octet_2, octet_3, octet_4);
+    return ip_addr;
 }
 
 void WiFiSetup::static_ip_dns() {
@@ -325,14 +329,18 @@ void WiFiSetup::static_ip_dns() {
     }
     // Interpret the received character and do the required action
     if (received_char == 'd') {
+        _custom_dns = true; // Set custom DNS flag to true
         Serial.println("Enter DNS server 1: ");
         _dns_server_1 = input_ip_address();
         Serial.println("Enter DNS server 2: ");
         _dns_server_2 = input_ip_address();
-        WiFi.config(_static_ip, _gateway_ip, _subnet_mask, _dns_server_1, 
-                    _dns_server_2);
+        WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
+                    IPAddress(_subnet_mask), IPAddress(_dns_server_1), 
+                    IPAddress(_dns_server_2));
     } else if (received_char == 'n') {
-        WiFi.config(_static_ip, _gateway_ip, _subnet_mask);
+        _custom_dns = false; // Set custom DNS flag to false
+        WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
+                    IPAddress(_subnet_mask));
     }
 }
 
@@ -344,10 +352,15 @@ bool WiFiSetup::read_chars_serial(char* char_array, int length_char) {
     while (Serial.available() > 0) {
         recv_char = Serial.read();
 
-        if (recv_char != end_marker) {
+        if (recv_char == 10) {
+            // Do nothing
+        } else if (recv_char != end_marker) {
             //Serial.print(recv_char);
             char_array[ndx] = recv_char;
             ndx++;
+            #ifdef STRING_DEBUG
+                Serial.println(ndx);
+            #endif
             if (ndx >= length_char) {
                 ndx = length_char - 1;
             }
@@ -358,6 +371,9 @@ bool WiFiSetup::read_chars_serial(char* char_array, int length_char) {
             char_array[ndx] = 0; // Zero array at new ndx pos
         } else {
             char_array[ndx] = '\0'; // Terminate the string
+            #ifdef STRING_DEBUG
+                Serial.println(ndx);
+            #endif
             ndx = 0;
             Serial.println(char_array);
             return true;
@@ -400,6 +416,19 @@ void WiFiSetup::setup_wizard() {
     Serial.println("WiFi Setup Wizard for ESP32");
     Serial.println("Developed by Finn Beckitt-Marshall, 2020");
 
+    // Display prompt to skip NVS connection
+    bool skip_nvs = skip_nvs_connection();
+    // Attempt to connect using the NVS settings
+    if (skip_nvs == false) {
+        while (_attempt_connect_nvs == false) {
+            Serial.println("Connecting using NVS settings...");
+            _attempt_connect_nvs = connect_using_nvs_settings();
+            if (WiFi.status() == WL_CONNECTED) {
+                return; // Quit setup wizard if connected
+            }
+        }
+    }
+
     // Refresh the networks
     refresh_networks();
 
@@ -423,6 +452,7 @@ void WiFiSetup::setup_wizard() {
     if (received_char == 'a') {
         show_adv_network_view();
     } else if (received_char == 'd') {
+        _use_static_ip = false;
         connect_to_network();
     } else if (received_char == 's') {
         _use_static_ip = true;
@@ -449,74 +479,141 @@ void WiFiSetup::show_adv_network_view() {
     }
 }
 
-void WiFiSetup::save_to_rom() {
-    prefs.begin("WiFiSettings", false);
-    Serial.println("Saving WiFi settings to ROM...");
-    prefs.putString("SSID", _selected_ssid);
-    if (_wpa_encryption == true) { prefs.putString("Pass", _wpa_passphrase); }
-    prefs.putBool("is_WPA", _wpa_encryption);
-    prefs.end();
-}
-
-bool WiFiSetup::load_connect() {
-    // Show reconfig prompt
-    if (reconfig_prompt()) {
-        return false;
-    }
-    // Initialise hardware timer to null
-    timer = NULL;
-    // Set timeout flag to false
-    connect_timeout = false;
-    // Get the variables from the ROM
-    _selected_ssid = prefs.getString("SSID", "");
-    _wpa_encryption = prefs.getBool("is_WPA");
-    Serial.print("SSID: ");
-    Serial.println(_selected_ssid);
-    Serial.print("WPA: ");
-    Serial.println(_wpa_encryption);
-    Serial.print("Pass: ");
-    Serial.println(prefs.getString("Pass", ""));
-    if (_wpa_encryption == true) { 
-        (prefs.getString("Pass", "")).c_str();
-        WiFi.begin(_selected_ssid.c_str(), prefs.getString("Pass", "").c_str(),
-                   0, NULL, true);
-    } else {
-        WiFi.begin(_selected_ssid.c_str(), NULL, 0, NULL, true);
-    }
-    
-    // Attempt to connect using the stored variables
-    start_timeout_timer(10);
-    Serial.println("Establishing connection to network");
+void WiFiSetup::display_establishing_conn_prompt() {
+    Serial.println("");
+    Serial.print("Establishing connection to network");
     while ((WiFi.status() != WL_CONNECTED) && (connect_timeout == false)) {
         delay(1000);
         Serial.print(".");
     }
-    if (WiFi.status() == WL_CONNECTED) {
-        Serial.print(WiFi.localIP());
+}
+
+ConnectionType WiFiSetup::create_conn_type_value() {
+    if (_wpa_encryption == true) {
+        if (_use_static_ip == true) {
+            if (_custom_dns == true) {
+                return WPA_STATIC_DNS;
+            } else {
+                return WPA_STATIC;
+            }
+        } else {
+            return WPA_DHCP;
+        }
+    } else {
+        if (_use_static_ip == true) {
+            if (_custom_dns == true) {
+                return OPEN_STATIC_DNS;
+            } else {
+                return OPEN_STATIC;
+            }
+        } else {
+            return OPEN_DHCP;
+        }
+    }
+    return UNKNOWN;
+}
+
+void WiFiSetup::save_settings_to_nvs() {
+    prefs.begin("WiFiSetup", false); // Begin saving
+    prefs.clear(); // Clear previous preferences
+    // Save the connection type
+    prefs.putUChar("CONN_TYPE", _conn_type);
+    // Save if network not unknown
+    if (_conn_type != UNKNOWN) {
+        prefs.putString("SSID", _selected_ssid);
+        // Save the WPA passphrase if WPA type
+        if (_conn_type == WPA_DHCP || _conn_type == WPA_STATIC ||
+            _conn_type == WPA_STATIC_DNS) {
+            prefs.putString("WPA_PASS", _wpa_passphrase);
+        }
+        // Save the static IPs if one of the static IP types
+        if (_conn_type == WPA_STATIC || _conn_type == WPA_STATIC_DNS ||
+            _conn_type == OPEN_STATIC || _conn_type == OPEN_STATIC_DNS) {
+            prefs.putULong("STATIC_IP", _static_ip);
+            prefs.putULong("GATEWAY_IP", _gateway_ip);
+            prefs.putULong("SUBNET_MASK", _subnet_mask);
+            // If custom DNS required, save the DNS
+            if (_conn_type == WPA_STATIC_DNS || _conn_type == OPEN_STATIC_DNS) {
+                prefs.putULong("DNS_1", _dns_server_1);
+                prefs.putULong("DNS_2", _dns_server_2);
+            }
+        }
+    }
+
+    prefs.end(); // Finish saving
+}
+
+bool WiFiSetup::connect_using_nvs_settings() {
+    prefs.begin("WiFiSetup", true); // Begin preferences - read only
+
+    // Get the connection type
+    _conn_type = (ConnectionType)prefs.getUChar("CONN_TYPE", 0);
+    Serial.println(_conn_type);
+    if (_conn_type == UNKNOWN) {
+        prefs.end();
+        Serial.println("Unknown connection type - need to reconfigure");
         return true;
-        
+    } else {
+        // Get SSID
+        _selected_ssid = prefs.getString("SSID", "");
+        Serial.println(_selected_ssid);
+        // Set up DNS as required
+        config_dns_nvs();
+        // Connect as required
+        if (_conn_type == WPA_DHCP || _conn_type == WPA_STATIC ||
+            _conn_type == WPA_STATIC_DNS) {
+            String pass = prefs.getString("WPA_PASS", "");
+            Serial.print(pass);
+            WiFi.begin(_selected_ssid.c_str(), pass.c_str(), 0, NULL, true);
+        } else {
+            WiFi.begin(_selected_ssid.c_str(), NULL, 0, NULL, true);
+        }
+        prefs.end(); // Don't need the NVS after this point
+        start_timeout_timer(10);
+        display_establishing_conn_prompt();
+        if (WiFi.status() == WL_CONNECTED) {
+            return true;
+        }
     }
     prefs.end();
     return false;
 }
 
-bool WiFiSetup::reconfig_prompt() {
-    // Print the reconfigure prompt text
-    Serial.println("Press 'r' to reconfigure networks...");
-    // Initialise hardware timer to null
-    timer = NULL;
-    // Set timeout flag to false
-    connect_timeout = false;
-    // Start timeout timer - 5 seconds
-    start_timeout_timer(5);
-    char received_char;
-    bool reconfig = false;
-    while (connect_timeout == false && reconfig == false) {
-        // Capture serial input
-        received_char = get_char();
-        if (received_char == 'r') {
-            reconfig = true;
+void WiFiSetup::config_dns_nvs() {
+    if (_conn_type == WPA_STATIC || _conn_type == WPA_STATIC_DNS ||
+        _conn_type == OPEN_STATIC || _conn_type == OPEN_STATIC_DNS) {
+        _static_ip =  prefs.getULong("STATIC_IP", 0);
+        _gateway_ip = prefs.getULong("GATEWAY_IP", 0);
+        _subnet_mask = prefs.getULong("SUBNET_MASK", 0);
+        if (_conn_type == WPA_STATIC_DNS || _conn_type == OPEN_STATIC_DNS) {
+            _dns_server_1 = prefs.getULong("DNS_1", _dns_server_1);
+            _dns_server_2 = prefs.getULong("DNS_2", _dns_server_2);
+            WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
+                    IPAddress(_subnet_mask), IPAddress(_dns_server_1), 
+                    IPAddress(_dns_server_2));
+        } else {
+            WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
+                    IPAddress(_subnet_mask));
         }
     }
-    return reconfig;
+}
+
+bool WiFiSetup::skip_nvs_connection() {
+    Serial.println("Press space bar to skip connecting to stored network...");
+    bool valid_char = false;
+    char received_char;
+    int time_count = 0;
+    while (valid_char == false) {
+        received_char = get_char();
+        if (received_char == ' ') {
+            valid_char = true;
+            return true;
+        }
+        delay(1000);
+        time_count++;
+        if (time_count == 5) {
+            return false;
+        }
+    }
+    return false;
 }

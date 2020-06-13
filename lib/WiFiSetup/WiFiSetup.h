@@ -2,15 +2,27 @@
 #define WIFISETUP_H
 
 #include <Arduino.h>
-#include <Preferences.h>
 #include <WiFi.h>
 #include <vector>
 #include <cstdio>
+#include <cstring>
+#include <Preferences.h>
 
 #define LENGTH_IP_CHAR 16
 
 // Enum for holding WiFi signal strength (verbose)
 enum VerboseSigStrength {Excellent, Good, Fair, Weak};
+
+// Enum for holding connection type as integer
+enum ConnectionType : uint8_t {
+    UNKNOWN,
+    OPEN_DHCP,
+    OPEN_STATIC,
+    OPEN_STATIC_DNS,
+    WPA_DHCP,
+    WPA_STATIC,
+    WPA_STATIC_DNS
+};
 
 /** Struct to hold network data */
 struct NetworkData {
@@ -18,8 +30,7 @@ struct NetworkData {
     long network_signal_strength; /**< Network signal strength in dBm */
     VerboseSigStrength signal_verbose; /**< Verbose signal strength (Excellent, Good, Fair, Weak) */
     String network_mac; /**< Network MAC address, stored as string */
-    wifi_auth_mode_t network_type_libform; /**< Network encryption type stored as wifi_auth_mode_t */
-    String network_type; /**< Network encryption type */
+    wifi_auth_mode_t network_enc_type; /**< Network encryption type */
     int32_t network_chan; /**< Network channel */
 };
 
@@ -115,11 +126,11 @@ class WiFiSetup {
          */
         String get_wpa_passphrase();
 
-        /** Allows the user to enter an IP address and converts the IP to the
-         * IPAddress struct format
-         * \return IP address in IPAddress format
+        /** Allows the user to enter an IP address and converts the IP to an
+         * unsigned long value (32 bits)
+         * \return IP address in unsigned long
          */
-        IPAddress input_ip_address();
+        unsigned long input_ip_address();
 
         /** Allows the user to set up a static IP address with optional DNS */
         void static_ip_dns();
@@ -156,9 +167,29 @@ class WiFiSetup {
          * the space bar to exit */
         void show_adv_network_view();
 
-        /** Save the network settings to the ESP32 ROM when network connection
-         * is successful */
-        void save_to_rom();
+        /** Display 'Establishing connection' prompt while connecting */
+        void display_establishing_conn_prompt();
+
+        /** Create a value for the ConnectionType enum
+         * \return ConnectionType enum
+         */
+        ConnectionType create_conn_type_value();
+
+        /** Save the WiFi settings to NVS if the connection is successful */
+        void save_settings_to_nvs();
+
+        /** Attempt to connect using settings stored in NVS
+         * \return True when attempted, false otherwise
+         */
+        bool connect_using_nvs_settings();
+
+        /** Configure the DNS using NVS settings */
+        void config_dns_nvs();
+
+        /** Display prompt for user to skip NVS connection
+         * \return True to skip NVS connection, false otherwise
+         */
+        bool skip_nvs_connection();
 
         /** Load network settings from ROM and attempt to connect
          * \return True if connection successful, false if not
@@ -177,6 +208,10 @@ class WiFiSetup {
 
         // Network data vector
         std::vector<NetworkData> _network_data_vector;
+
+        // Flag to state whether connection has been attempted using the settings
+        // stored in NVS
+        bool _attempt_connect_nvs;
         
         // SSID storage for connection
         String _selected_ssid;
@@ -193,29 +228,32 @@ class WiFiSetup {
         // WiFi connection status
         wl_status_t _conn_status;
 
-        // Flag for accepted encryption type
-        bool _accepted_encryption;
-
         // Flag for WPA encryption
         bool _wpa_encryption;
     
         // Flag for static IP/DHCP - true for static IP
         bool _use_static_ip;
 
+        // Flag for using custom DNS
+        bool _custom_dns;
+
         // Static IP address
-        IPAddress _static_ip;
+        unsigned long _static_ip;
 
         // Gateway IP address
-        IPAddress _gateway_ip;
+        unsigned long _gateway_ip;
 
         // Subnet mask
-        IPAddress _subnet_mask;
+        unsigned long _subnet_mask;
 
         // DNS server 1
-        IPAddress _dns_server_1;
+        unsigned long _dns_server_1;
 
         // DNS server 2
-        IPAddress _dns_server_2;
+        unsigned long _dns_server_2;
+
+        // Enum used to save connection type
+        ConnectionType _conn_type;
 
         
 };

@@ -8,11 +8,10 @@ void setup() {
   Serial.begin(115200);
   // Initialise WiFiSetup
   wsetup.init();
-  if (!wsetup.load_connect()) {
-    while (WiFi.status() != WL_CONNECTED) {
-      wsetup.setup_wizard();
-    }
+  while (WiFi.status() != WL_CONNECTED) {
+    wsetup.setup_wizard();
   }
+
   // Print the IP address when connected
   Serial.print("IP: ");
   Serial.print(WiFi.localIP());

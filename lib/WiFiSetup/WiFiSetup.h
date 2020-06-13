@@ -12,6 +12,17 @@
 // Enum for holding WiFi signal strength (verbose)
 enum VerboseSigStrength {Excellent, Good, Fair, Weak};
 
+// Enum for holding connection type as integer
+enum ConnectionType : uint8_t {
+    OPEN_DHCP,
+    OPEN_STATIC,
+    OPEN_STATIC_DNS,
+    WPA_DHCP,
+    WPA_STATIC,
+    WPA_STATIC_DNS,
+    UNKNOWN
+};
+
 /** Struct to hold network data */
 struct NetworkData {
     String network_ssid; /**< Network SSID */
@@ -156,6 +167,11 @@ class WiFiSetup {
         /** Display 'Establishing connection' prompt while connecting */
         void display_establishing_conn_prompt();
 
+        /** Create a value for the ConnectionType enum
+         * \return ConnectionType enum
+         */
+        ConnectionType create_conn_type_value();
+
     private:
         // Hardware timer - used for connection timeout
         static hw_timer_t * _timer;
@@ -184,20 +200,26 @@ class WiFiSetup {
         // Flag for static IP/DHCP - true for static IP
         bool _use_static_ip;
 
+        // Flag for using custom DNS
+        bool _custom_dns;
+
         // Static IP address
-        IPAddress _static_ip;
+        unsigned long _static_ip;
 
         // Gateway IP address
-        IPAddress _gateway_ip;
+        unsigned long _gateway_ip;
 
         // Subnet mask
-        IPAddress _subnet_mask;
+        unsigned long _subnet_mask;
 
         // DNS server 1
-        IPAddress _dns_server_1;
+        unsigned long _dns_server_1;
 
         // DNS server 2
-        IPAddress _dns_server_2;
+        unsigned long _dns_server_2;
+
+        // Enum used to save connection type
+        ConnectionType _conn_type;
 
         
 };

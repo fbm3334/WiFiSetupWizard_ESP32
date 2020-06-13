@@ -16,6 +16,10 @@ WiFiSetup::~WiFiSetup() {
 void WiFiSetup::init() {
     // Automatically defaults to DHCP
     _use_static_ip = false;
+    // Set the DNS flag to false
+    _custom_dns = false;
+    // Set WPA to false
+    _wpa_encryption = false;
     // Initialise hardware timer to null
     timer = NULL;
     // Set timeout flag to false
@@ -232,15 +236,20 @@ void WiFiSetup::connect_to_network() {
             return;
 
     } else if (encryption_type == WIFI_AUTH_OPEN) { // Open networks
+        // Set WPA flag to false
+        _wpa_encryption = false;
         Serial.println("Selected network is open, no passphrase is required.");
         WiFi.begin(_selected_ssid.c_str(), NULL, 0, NULL, true);
         start_timeout_timer(10);
     } else { // WPA/WPA2 networks
+        // Set WPA flag to true
+        _wpa_encryption = true;
         enter_passphrase();
         WiFi.begin(_selected_ssid.c_str(), _wpa_passphrase, 0, NULL, true);
         start_timeout_timer(10);
     }
-    
+    _conn_type = create_conn_type_value();
+    Serial.print(_conn_type);
     display_establishing_conn_prompt();
 }
 
@@ -304,6 +313,7 @@ void WiFiSetup::static_ip_dns() {
     }
     // Interpret the received character and do the required action
     if (received_char == 'd') {
+        _custom_dns = true; // Set custom DNS flag to true
         Serial.println("Enter DNS server 1: ");
         _dns_server_1 = input_ip_address();
         Serial.println("Enter DNS server 2: ");
@@ -312,6 +322,7 @@ void WiFiSetup::static_ip_dns() {
                     IPAddress(_subnet_mask), IPAddress(_dns_server_1), 
                     IPAddress(_dns_server_2));
     } else if (received_char == 'n') {
+        _custom_dns = false; // Set custom DNS flag to false
         WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
                     IPAddress(_subnet_mask));
     }
@@ -411,6 +422,7 @@ void WiFiSetup::setup_wizard() {
     if (received_char == 'a') {
         show_adv_network_view();
     } else if (received_char == 'd') {
+        _use_static_ip = false;
         connect_to_network();
     } else if (received_char == 's') {
         _use_static_ip = true;
@@ -444,4 +456,29 @@ void WiFiSetup::display_establishing_conn_prompt() {
         delay(1000);
         Serial.print(".");
     }
+}
+
+ConnectionType WiFiSetup::create_conn_type_value() {
+    if (_wpa_encryption == true) {
+        if (_use_static_ip == true) {
+            if (_custom_dns == true) {
+                return WPA_STATIC_DNS;
+            } else {
+                return WPA_STATIC;
+            }
+        } else {
+            return WPA_DHCP;
+        }
+    } else {
+        if (_use_static_ip == true) {
+            if (_custom_dns == true) {
+                return OPEN_STATIC_DNS;
+            } else {
+                return OPEN_STATIC;
+            }
+        } else {
+            return OPEN_DHCP;
+        }
+    }
+    return UNKNOWN;
 }

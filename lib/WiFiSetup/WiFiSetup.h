@@ -37,7 +37,7 @@ struct NetworkData {
 /** \class WiFiSetup
  * \brief Sets up WiFi connections on the ESP32
  * \author Finn Beckitt-Marshall (fbm3334)
- * \date 31st May 2020
+ * \date June 2020
  */
 
 class WiFiSetup {
@@ -190,6 +190,17 @@ class WiFiSetup {
          * \return True to skip NVS connection, false otherwise
          */
         bool skip_nvs_connection();
+
+        /** Load network settings from ROM and attempt to connect
+         * \return True if connection successful, false if not
+         */
+        bool load_connect();
+
+        /** Allows the user to re-configure the network on boot if settings
+         *  are saved 
+         * \return True if networks need reconfiguring, false otherwise
+         * */
+        bool reconfig_prompt();
 
     private:
         // Hardware timer - used for connection timeout

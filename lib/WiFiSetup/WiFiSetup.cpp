@@ -31,6 +31,9 @@ void WiFiSetup::init() {
 int WiFiSetup::scan_networks() {
     // Scan the networks and print the number of networks found
     int number_networks = WiFi.scanNetworks();
+    Serial.print("WiFi Status");
+    Serial.println(WiFi.status());
+
     Serial.print("Number of networks found: ");
     Serial.println(number_networks);
 
@@ -130,8 +133,10 @@ void WiFiSetup::print_networks_simple() {
 void WiFiSetup::refresh_networks() {
     // Clear the network vector
     _network_data_vector.clear();
+    Serial.println("Networks cleared.");
     // Rescan and print WiFi networks to the terminal
     scan_networks();
+    
     // Send an ASCII form feed to clear terminal data
     //char delete_term = 12;
     //Serial.print(delete_term);
@@ -426,6 +431,7 @@ void WiFiSetup::setup_wizard() {
 
     // Refresh the networks
     refresh_networks();
+
 
     // User prompt - 'a' for advanced view, 'd' to connect to a network using
     // DHCP and 's' to connect to a network using a static IP

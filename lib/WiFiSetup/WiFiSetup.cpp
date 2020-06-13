@@ -571,12 +571,12 @@ bool WiFiSetup::connect_using_nvs_settings() {
 void WiFiSetup::config_dns_nvs() {
     if (_conn_type == WPA_STATIC || _conn_type == WPA_STATIC_DNS ||
         _conn_type == OPEN_STATIC || _conn_type == OPEN_STATIC_DNS) {
-        prefs.getULong("STATIC_IP", 0);
-        prefs.getULong("GATEWAY_IP", 0);
-        prefs.getULong("SUBNET_MASK", 0);
+        _static_ip =  prefs.getULong("STATIC_IP", 0);
+        _gateway_ip = prefs.getULong("GATEWAY_IP", 0);
+        _subnet_mask = prefs.getULong("SUBNET_MASK", 0);
         if (_conn_type == WPA_STATIC_DNS || _conn_type == OPEN_STATIC_DNS) {
-            prefs.getULong("DNS_1", _dns_server_1);
-            prefs.getULong("DNS_2", _dns_server_2);
+            _dns_server_1 = prefs.getULong("DNS_1", _dns_server_1);
+            _dns_server_2 = prefs.getULong("DNS_2", _dns_server_2);
             WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
                     IPAddress(_subnet_mask), IPAddress(_dns_server_1), 
                     IPAddress(_dns_server_2));

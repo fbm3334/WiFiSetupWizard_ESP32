@@ -241,10 +241,7 @@ void WiFiSetup::connect_to_network() {
         start_timeout_timer(10);
     }
     
-    while ((WiFi.status() != WL_CONNECTED) && (connect_timeout == false)) {
-        delay(1000);
-        Serial.println("Establishing connection to network...");
-    }
+    display_establishing_conn_prompt();
 }
 
 String WiFiSetup::get_ssid() { return _selected_ssid; }
@@ -437,5 +434,14 @@ void WiFiSetup::show_adv_network_view() {
         if (received_char == ' ') {
             valid_char = true;
         }
+    }
+}
+
+void WiFiSetup::display_establishing_conn_prompt() {
+    Serial.println("");
+    Serial.print("Establishing connection to network");
+    while ((WiFi.status() != WL_CONNECTED) && (connect_timeout == false)) {
+        delay(1000);
+        Serial.print(".");
     }
 }

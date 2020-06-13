@@ -153,6 +153,9 @@ class WiFiSetup {
          * the space bar to exit */
         void show_adv_network_view();
 
+        /** Display 'Establishing connection' prompt while connecting */
+        void display_establishing_conn_prompt();
+
     private:
         // Hardware timer - used for connection timeout
         static hw_timer_t * _timer;

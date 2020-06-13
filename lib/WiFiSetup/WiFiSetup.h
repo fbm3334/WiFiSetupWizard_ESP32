@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstdio>
 #include <cstring>
+#include <Preferences.h>
 
 #define LENGTH_IP_CHAR 16
 
@@ -14,13 +15,13 @@ enum VerboseSigStrength {Excellent, Good, Fair, Weak};
 
 // Enum for holding connection type as integer
 enum ConnectionType : uint8_t {
+    UNKNOWN,
     OPEN_DHCP,
     OPEN_STATIC,
     OPEN_STATIC_DNS,
     WPA_DHCP,
     WPA_STATIC,
-    WPA_STATIC_DNS,
-    UNKNOWN
+    WPA_STATIC_DNS
 };
 
 /** Struct to hold network data */
@@ -40,6 +41,8 @@ struct NetworkData {
  */
 
 class WiFiSetup {
+
+    Preferences prefs;
 
     public:
         /** Timeout flag */
@@ -172,12 +175,32 @@ class WiFiSetup {
          */
         ConnectionType create_conn_type_value();
 
+        /** Save the WiFi settings to NVS if the connection is successful */
+        void save_settings_to_nvs();
+
+        /** Attempt to connect using settings stored in NVS
+         * \return True when attempted, false otherwise
+         */
+        bool connect_using_nvs_settings();
+
+        /** Configure the DNS using NVS settings */
+        void config_dns_nvs();
+
+        /** Display prompt for user to skip NVS connection
+         * \return True to skip NVS connection, false otherwise
+         */
+        bool skip_nvs_connection();
+
     private:
         // Hardware timer - used for connection timeout
         static hw_timer_t * _timer;
 
         // Network data vector
         std::vector<NetworkData> _network_data_vector;
+
+        // Flag to state whether connection has been attempted using the settings
+        // stored in NVS
+        bool _attempt_connect_nvs;
         
         // SSID storage for connection
         String _selected_ssid;

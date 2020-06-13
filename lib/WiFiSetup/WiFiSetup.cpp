@@ -24,6 +24,8 @@ void WiFiSetup::init() {
     timer = NULL;
     // Set timeout flag to false
     connect_timeout = false;
+    // Set attempt to connect using NVS settings flag to false
+    _attempt_connect_nvs = false;
 }
 
 int WiFiSetup::scan_networks() {
@@ -251,6 +253,12 @@ void WiFiSetup::connect_to_network() {
     _conn_type = create_conn_type_value();
     Serial.print(_conn_type);
     display_establishing_conn_prompt();
+
+    // Once connected, save the values to NVS
+    if (WiFi.status() == WL_CONNECTED) {
+        save_settings_to_nvs();
+    }
+
 }
 
 String WiFiSetup::get_ssid() { return _selected_ssid; }
@@ -400,6 +408,19 @@ void WiFiSetup::setup_wizard() {
     Serial.println("WiFi Setup Wizard for ESP32");
     Serial.println("Developed by Finn Beckitt-Marshall, 2020");
 
+    // Display prompt to skip NVS connection
+    bool skip_nvs = skip_nvs_connection();
+    // Attempt to connect using the NVS settings
+    if (skip_nvs == false) {
+        while (_attempt_connect_nvs == false) {
+            Serial.println("Connecting using NVS settings...");
+            _attempt_connect_nvs = connect_using_nvs_settings();
+            if (WiFi.status() == WL_CONNECTED) {
+                return; // Quit setup wizard if connected
+            }
+        }
+    }
+
     // Refresh the networks
     refresh_networks();
 
@@ -481,4 +502,107 @@ ConnectionType WiFiSetup::create_conn_type_value() {
         }
     }
     return UNKNOWN;
+}
+
+void WiFiSetup::save_settings_to_nvs() {
+    prefs.begin("WiFiSetup", false); // Begin saving
+    prefs.clear(); // Clear previous preferences
+    // Save the connection type
+    prefs.putUChar("CONN_TYPE", _conn_type);
+    // Save if network not unknown
+    if (_conn_type != UNKNOWN) {
+        prefs.putString("SSID", _selected_ssid);
+        // Save the WPA passphrase if WPA type
+        if (_conn_type == WPA_DHCP || _conn_type == WPA_STATIC ||
+            _conn_type == WPA_STATIC_DNS) {
+            prefs.putString("WPA_PASS", _wpa_passphrase);
+        }
+        // Save the static IPs if one of the static IP types
+        if (_conn_type == WPA_STATIC || _conn_type == WPA_STATIC_DNS ||
+            _conn_type == OPEN_STATIC || _conn_type == OPEN_STATIC_DNS) {
+            prefs.putULong("STATIC_IP", _static_ip);
+            prefs.putULong("GATEWAY_IP", _gateway_ip);
+            prefs.putULong("SUBNET_MASK", _subnet_mask);
+            // If custom DNS required, save the DNS
+            if (_conn_type == WPA_STATIC_DNS || _conn_type == OPEN_STATIC_DNS) {
+                prefs.putULong("DNS_1", _dns_server_1);
+                prefs.putULong("DNS_2", _dns_server_2);
+            }
+        }
+    }
+
+    prefs.end(); // Finish saving
+}
+
+bool WiFiSetup::connect_using_nvs_settings() {
+    prefs.begin("WiFiSetup", true); // Begin preferences - read only
+
+    // Get the connection type
+    _conn_type = (ConnectionType)prefs.getUChar("CONN_TYPE", 0);
+    Serial.println(_conn_type);
+    if (_conn_type == UNKNOWN) {
+        prefs.end();
+        Serial.println("Unknown connection type - need to reconfigure");
+        return true;
+    } else {
+        // Get SSID
+        _selected_ssid = prefs.getString("SSID", "");
+        // Set up DNS as required
+        config_dns_nvs();
+        // Connect as required
+        if (_conn_type == WPA_DHCP || _conn_type == WPA_STATIC ||
+            _conn_type == WPA_STATIC_DNS) {
+            String pass = prefs.getString("WPA_PASS", "");
+            WiFi.begin(_selected_ssid.c_str(), pass.c_str(), 0, NULL, true);
+        } else {
+            WiFi.begin(_selected_ssid.c_str(), NULL, 0, NULL, true);
+        }
+        prefs.end(); // Don't need the NVS after this point
+        start_timeout_timer(10);
+        display_establishing_conn_prompt();
+        if (WiFi.status() == WL_CONNECTED) {
+            return true;
+        }
+    }
+    prefs.end();
+    return false;
+}
+
+void WiFiSetup::config_dns_nvs() {
+    if (_conn_type == WPA_STATIC || _conn_type == WPA_STATIC_DNS ||
+        _conn_type == OPEN_STATIC || _conn_type == OPEN_STATIC_DNS) {
+        prefs.getULong("STATIC_IP", 0);
+        prefs.getULong("GATEWAY_IP", 0);
+        prefs.getULong("SUBNET_MASK", 0);
+        if (_conn_type == WPA_STATIC_DNS || _conn_type == OPEN_STATIC_DNS) {
+            prefs.getULong("DNS_1", _dns_server_1);
+            prefs.getULong("DNS_2", _dns_server_2);
+            WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
+                    IPAddress(_subnet_mask), IPAddress(_dns_server_1), 
+                    IPAddress(_dns_server_2));
+        } else {
+            WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
+                    IPAddress(_subnet_mask));
+        }
+    }
+}
+
+bool WiFiSetup::skip_nvs_connection() {
+    Serial.println("Press space bar to skip connecting to stored network...");
+    bool valid_char = false;
+    char received_char;
+    int time_count = 0;
+    while (valid_char == false) {
+        received_char = get_char();
+        if (received_char == ' ') {
+            valid_char = true;
+            return true;
+        }
+        delay(1000);
+        time_count++;
+        if (time_count == 5) {
+            return false;
+        }
+    }
+    return false;
 }

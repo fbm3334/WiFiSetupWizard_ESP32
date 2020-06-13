@@ -257,6 +257,9 @@ void WiFiSetup::connect_to_network() {
     // Once connected, save the values to NVS
     if (WiFi.status() == WL_CONNECTED) {
         save_settings_to_nvs();
+    } else {
+        // Call restart of ESP32 - stops looping
+        ESP.restart();
     }
 
 }
@@ -547,12 +550,14 @@ bool WiFiSetup::connect_using_nvs_settings() {
     } else {
         // Get SSID
         _selected_ssid = prefs.getString("SSID", "");
+        Serial.println(_selected_ssid);
         // Set up DNS as required
         config_dns_nvs();
         // Connect as required
         if (_conn_type == WPA_DHCP || _conn_type == WPA_STATIC ||
             _conn_type == WPA_STATIC_DNS) {
             String pass = prefs.getString("WPA_PASS", "");
+            Serial.print(pass);
             WiFi.begin(_selected_ssid.c_str(), pass.c_str(), 0, NULL, true);
         } else {
             WiFi.begin(_selected_ssid.c_str(), NULL, 0, NULL, true);

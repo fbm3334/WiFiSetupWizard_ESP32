@@ -112,11 +112,11 @@ class WiFiSetup {
          */
         String get_wpa_passphrase();
 
-        /** Allows the user to enter an IP address and converts the IP to the
-         * IPAddress struct format
-         * \return IP address in IPAddress format
+        /** Allows the user to enter an IP address and converts the IP to an
+         * unsigned long value (32 bits)
+         * \return IP address in unsigned long
          */
-        IPAddress input_ip_address();
+        unsigned long input_ip_address();
 
         /** Allows the user to set up a static IP address with optional DNS */
         void static_ip_dns();

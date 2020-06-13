@@ -251,7 +251,7 @@ String WiFiSetup::get_ssid() { return _selected_ssid; }
 
 String WiFiSetup::get_wpa_passphrase() { return _wpa_passphrase; }
 
-IPAddress WiFiSetup::input_ip_address() {
+unsigned long WiFiSetup::input_ip_address() {
     // Defining octet variables
     uint8_t octet_1;
     uint8_t octet_2;
@@ -277,16 +277,13 @@ IPAddress WiFiSetup::input_ip_address() {
         }
     }
 
-    #ifdef PRINT_IP
-        Serial.println(ip_address_string);
-        Serial.println(num_items);
-        Serial.println(octet_1);
-        Serial.println(octet_2);
-        Serial.println(octet_3);
-        Serial.println(octet_4);
-    #endif
+    unsigned long ip_addr = 0;
+    ip_addr += octet_1;
+    ip_addr += octet_2 << 8;
+    ip_addr += octet_3 << 16;
+    ip_addr += octet_4 << 24;
 
-    return IPAddress(octet_1, octet_2, octet_3, octet_4);
+    return ip_addr;
 }
 
 void WiFiSetup::static_ip_dns() {
@@ -314,10 +311,12 @@ void WiFiSetup::static_ip_dns() {
         _dns_server_1 = input_ip_address();
         Serial.println("Enter DNS server 2: ");
         _dns_server_2 = input_ip_address();
-        WiFi.config(_static_ip, _gateway_ip, _subnet_mask, _dns_server_1, 
-                    _dns_server_2);
+        WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
+                    IPAddress(_subnet_mask), IPAddress(_dns_server_1), 
+                    IPAddress(_dns_server_2));
     } else if (received_char == 'n') {
-        WiFi.config(_static_ip, _gateway_ip, _subnet_mask);
+        WiFi.config(IPAddress(_static_ip), IPAddress(_gateway_ip),
+                    IPAddress(_subnet_mask));
     }
 }
 

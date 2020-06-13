@@ -2,10 +2,10 @@
 #define WIFISETUP_H
 
 #include <Arduino.h>
-#include <Preferences.h>
 #include <WiFi.h>
 #include <vector>
 #include <cstdio>
+#include <cstring>
 
 #define LENGTH_IP_CHAR 16
 
@@ -30,8 +30,6 @@ struct NetworkData {
  */
 
 class WiFiSetup {
-
-    Preferences prefs;
 
     public:
         /** Timeout flag */
@@ -156,10 +154,6 @@ class WiFiSetup {
          * the space bar to exit */
         void show_adv_network_view();
 
-        /** Save the network settings to the ESP32 ROM when network connection
-         * is successful */
-        void save_to_rom();
-
     private:
         // Hardware timer - used for connection timeout
         static hw_timer_t * _timer;
@@ -181,9 +175,6 @@ class WiFiSetup {
 
         // WiFi connection status
         wl_status_t _conn_status;
-
-        // Flag for accepted encryption type
-        bool _accepted_encryption;
 
         // Flag for WPA encryption
         bool _wpa_encryption;

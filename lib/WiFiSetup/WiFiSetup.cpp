@@ -20,17 +20,6 @@ void WiFiSetup::init() {
     timer = NULL;
     // Set timeout flag to false
     connect_timeout = false;
-    // Initialise preferences
-    prefs.begin("WiFiSettings", false);
-
-    // Check whether the SSID field is empty by checking string length
-    if (prefs.getString("SSID", "").length() == 0) {
-        Serial.println("SSID not stored on ESP32 ROM");
-    } else {
-        Serial.println(prefs.getString("SSID", ""));
-        Serial.println(prefs.getString("Pass", ""));
-        Serial.println(prefs.getBool("isWPA"));
-    }
 }
 
 int WiFiSetup::scan_networks() {
@@ -208,43 +197,47 @@ void WiFiSetup::enter_passphrase() {
     // Print message to enter passphrase
     Serial.print("Enter network passphrase: ");
 
-    while (Serial.available() == false) {
-        // Max length of WPA passphrase is 63 characters, and waits for CR
-        _length_wpa_pass = Serial.readBytesUntil(13, _wpa_passphrase, 63);
-        _wpa_passphrase[_length_wpa_pass] = '\0';
+    bool data_ready = false;
+    while (data_ready == false) {
+        data_ready = read_chars_serial(_wpa_passphrase, 64);
     }
+    data_ready = false;
+    int length_pass = strlen(_wpa_passphrase);
+    #ifdef STRING_DEBUG
+        Serial.print("Length=");
+        Serial.println(length_pass);
+        // Compare the string contents
+        char correct_pass[6] = "\ntest";
+        Serial.println(strncmp(_wpa_passphrase, correct_pass, 1));
+    #endif
+    _wpa_passphrase[length_pass] = '\0';
+    Serial.println(_wpa_passphrase);
 }
 
 void WiFiSetup::connect_to_network() {
-    _accepted_encryption = false;
     // Select the network from the list
     _selected_network = select_network();
     Serial.println("Connecting to network...");
 
     String encryption_type = _network_data_vector[_selected_network].network_type;
 
-    if (encryption_type == "Unencrypted") {
+    if (encryption_type == "WEP" || encryption_type == "WPA2 Enterprise") {
+            Serial.println("Network type is not currently supported.");
+            return;
+
+    } else if (encryption_type == "Unencrypted") { // Open networks
         Serial.println("Selected network is open, no passphrase is required.");
         WiFi.begin(_selected_ssid.c_str(), NULL, 0, NULL, true);
-        _accepted_encryption = true;
-    } else if (encryption_type == "WEP" || encryption_type == "WPA2 Enterprise") {
-        Serial.println("Network type is not currently supported.");
-    } else {
+        start_timeout_timer(10);
+    } else { // WPA/WPA2 networks
         enter_passphrase();
         WiFi.begin(_selected_ssid.c_str(), _wpa_passphrase, 0, NULL, true);
         start_timeout_timer(10);
-        _accepted_encryption = true;
     }
     
-    while ((WiFi.status() != WL_CONNECTED) && (_accepted_encryption == true) &&
-            (connect_timeout == false)) {
+    while ((WiFi.status() != WL_CONNECTED) && (connect_timeout == false)) {
         delay(1000);
         Serial.println("Establishing connection to network...");
-    }
-    // If the connection is successful, save settings to ROM
-    if (WiFi.status() == WL_CONNECTED) {
-        save_to_rom();
-        prefs.end();
     }
 }
 
@@ -330,10 +323,15 @@ bool WiFiSetup::read_chars_serial(char* char_array, int length_char) {
     while (Serial.available() > 0) {
         recv_char = Serial.read();
 
-        if (recv_char != end_marker) {
+        if (recv_char == 10) {
+            // Do nothing
+        } else if (recv_char != end_marker) {
             //Serial.print(recv_char);
             char_array[ndx] = recv_char;
             ndx++;
+            #ifdef STRING_DEBUG
+                Serial.println(ndx);
+            #endif
             if (ndx >= length_char) {
                 ndx = length_char - 1;
             }
@@ -344,6 +342,9 @@ bool WiFiSetup::read_chars_serial(char* char_array, int length_char) {
             char_array[ndx] = 0; // Zero array at new ndx pos
         } else {
             char_array[ndx] = '\0'; // Terminate the string
+            #ifdef STRING_DEBUG
+                Serial.println(ndx);
+            #endif
             ndx = 0;
             Serial.println(char_array);
             return true;
@@ -372,7 +373,7 @@ void WiFiSetup::end_timeout_timer() {
 }
 
 char WiFiSetup::get_char() {
-    char return_char;
+    char return_char = 0;
     if (Serial.available() > 0) {
         return_char = Serial.read();
     }
@@ -432,10 +433,4 @@ void WiFiSetup::show_adv_network_view() {
             valid_char = true;
         }
     }
-}
-
-void WiFiSetup::save_to_rom() {
-    prefs.putString("SSID", _selected_ssid);
-    prefs.putString("Pass", _wpa_passphrase);
-    prefs.putBool("is_WPA", _wpa_encryption);
 }

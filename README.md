@@ -1,4 +1,4 @@
-# ESP32_WiFiSetup
+# WiFiSetupWizard_ESP32
 
 ## Description
 
@@ -20,5 +20,5 @@ Some features that are missing and can be added in the future include:
  - [ ] 
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTE1OTE5ODk0NiwtNzcxMzk2ODY0XX0=
+eyJoaXN0b3J5IjpbLTUyNDY1Mzk2MSwtNzcxMzk2ODY0XX0=
 -->

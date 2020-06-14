@@ -9,9 +9,9 @@ ESP32_WiFiSetup is designed to be a simple to use WiFi setup utility for the Esp
  - Lightweight - does not use much more RAM or program storage space on top of the resources required to use WiFi on the ESP32
  - WiFi credentials storage using the NVS (non-volatile storage) on the ESP32
 
-## Installation
+## Using the library
 **PlatformIO**  
-If you are using PlatformIO, place the /lib/WiFiSetup folder from this repository into 
+If you are using PlatformIO, place the /lib/WiFiSetup folder from this repository into the /lib folder of your project. Then, follow the example
 
 ## Future additions
 Some features that are missing and can be added in the future include:
@@ -20,5 +20,5 @@ Some features that are missing and can be added in the future include:
  - [ ] 
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE2MTA5MDAyNDgsLTc3MTM5Njg2NF19
+eyJoaXN0b3J5IjpbLTE1ODk4ODkwMTUsLTc3MTM5Njg2NF19
 -->

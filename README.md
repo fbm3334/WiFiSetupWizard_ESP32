@@ -1,5 +1,5 @@
 # ESP32_WiFiSetup
- A setup utility for WiFi networks on the ESP32 MCU, using PlatformIO and Arduino libraries
+ESP32_WiFiSetup is designed to be a simple to use WiFi setup utility for the Espressif ESP32. It us
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE1MTk5MTAzMzldfQ==
+eyJoaXN0b3J5IjpbLTIxMjAwNDMwMDldfQ==
 -->

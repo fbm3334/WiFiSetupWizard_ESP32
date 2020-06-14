@@ -23,12 +23,13 @@ Then, restart your Arduino IDE and the library should appear in the Sketch/Inclu
 ## Future additions
 Some features that are missing and can be added in the future include:
  - [ ] ESP8266 support
- - [ ] Status LED support (e.g. usin
+ - [ ] Status LED support (e.g. using an RGB LED to indicate connection status)
+ - [ ] 
 ## Licensing
 This library is licensed under the MIT license. Please refer to the license for terms of use.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTExMzE4MjM5MjUsODc2MTUyNTM4LC0xND
-AzMTc0NjU4LC0xMzM3NDk1NDMxLDE1NTg1MDI4MjUsMTU4ODc0
-ODAzMCwyMDQ1MTY2MjYxLDE5Njg2NDEzNDMsLTc3MTM5Njg2NF
-19
+eyJoaXN0b3J5IjpbLTgwMjk5NjAzNyw4NzYxNTI1MzgsLTE0MD
+MxNzQ2NTgsLTEzMzc0OTU0MzEsMTU1ODUwMjgyNSwxNTg4NzQ4
+MDMwLDIwNDUxNjYyNjEsMTk2ODY0MTM0MywtNzcxMzk2ODY0XX
+0=
 -->

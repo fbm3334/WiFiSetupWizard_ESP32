@@ -22,13 +22,13 @@ Then, restart your Arduino IDE and the library should appear in the Sketch/Inclu
 
 ## Future additions
 Some features that are missing and can be added in the future include:
-
- - [ ] WEP support for networks
- - [ ] 
+ - [ ] ESP8266 support
+ - [ ] Status LED support (e.g. usin
 ## Licensing
 This library is licensed under the MIT license. Please refer to the license for terms of use.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODc2MTUyNTM4LC0xNDAzMTc0NjU4LC0xMz
-M3NDk1NDMxLDE1NTg1MDI4MjUsMTU4ODc0ODAzMCwyMDQ1MTY2
-MjYxLDE5Njg2NDEzNDMsLTc3MTM5Njg2NF19
+eyJoaXN0b3J5IjpbLTExMzE4MjM5MjUsODc2MTUyNTM4LC0xND
+AzMTc0NjU4LC0xMzM3NDk1NDMxLDE1NTg1MDI4MjUsMTU4ODc0
+ODAzMCwyMDQ1MTY2MjYxLDE5Njg2NDEzNDMsLTc3MTM5Njg2NF
+19
 -->

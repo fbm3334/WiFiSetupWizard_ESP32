@@ -4,7 +4,7 @@
 
 WiFiSetupWizard_ESP32 is designed to be a simple to use WiFi setup utility for the Espressif ESP32 using the arduino-esp32 libraries, therefore making it easy to integrate into Arduino/PlatformIO projects using the ESP32. It uses serial communication with the ESP32 (UART_0) to communicate externally, meaning that WiFi connections can be set up using terminal emulator software on a PC or other device.
 ## Features
- - Simple to use - a total of 6 lines of code are required in order to add the utility, and the utility runs entirely within the setup() portion of the code, meaning that 
+ - Simple to use - a total of 6 lines of code are required in order to add the utility, and the utility runs entirely within the setup() portion of the code, meaning that the loop() portion of the code is free
  - Lightweight - does not use much more RAM or program storage space on top of the resources required to use WiFi on the ESP32
  - WiFi credentials storage using the NVS (non-volatile storage) on the ESP32
 
@@ -28,7 +28,7 @@ Some features that are missing and can be added in the future include:
 ## Licensing
 This library is licensed under the MIT license. Please refer to the license for terms of use.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODM1MjY0MDI0LC0xNDAzMTc0NjU4LC0xMz
+eyJoaXN0b3J5IjpbODc2MTUyNTM4LC0xNDAzMTc0NjU4LC0xMz
 M3NDk1NDMxLDE1NTg1MDI4MjUsMTU4ODc0ODAzMCwyMDQ1MTY2
 MjYxLDE5Njg2NDEzNDMsLTc3MTM5Njg2NF19
 -->

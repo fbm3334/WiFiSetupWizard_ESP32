@@ -26,8 +26,10 @@ Some features that are missing and can be added in the future include:
 
  - [ ] WEP support for networks
  - [ ] 
+## Licensing
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTU1ODUwMjgyNSwxNTg4NzQ4MDMwLDIwND
-UxNjYyNjEsMTk2ODY0MTM0MywtNzcxMzk2ODY0XX0=
+eyJoaXN0b3J5IjpbLTEzMzc0OTU0MzEsMTU1ODUwMjgyNSwxNT
+g4NzQ4MDMwLDIwNDUxNjYyNjEsMTk2ODY0MTM0MywtNzcxMzk2
+ODY0XX0=
 -->

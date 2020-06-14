@@ -11,7 +11,7 @@ ESP32_WiFiSetup is designed to be a simple to use WiFi setup utility for the Esp
 
 ## Installation
 **PlatformIO**  
-If you are using PlatformIO, 
+If you are using PlatformIO, place the /lib/WiFiSetup folder from the ESP32_WiFiSetup
 
 ## Future additions
 Some features that are missing and can be added in the future include:
@@ -20,5 +20,5 @@ Some features that are missing and can be added in the future include:
  - [ ] 
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODI1NTgwMjc2LC03NzEzOTY4NjRdfQ==
+eyJoaXN0b3J5IjpbMTE1OTE5ODk0NiwtNzcxMzk2ODY0XX0=
 -->

@@ -3,8 +3,8 @@ ESP32_WiFiSetup is designed to be a simple to use WiFi setup utility for the Esp
 ## Features
 
  - Simple to use - a total of 6 lines of code are required in order to add the utility
- - Light
+ - Lightweight - 
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbOTQxNDc3MjBdfQ==
+eyJoaXN0b3J5IjpbMTEwNDQwNjk4OV19
 -->

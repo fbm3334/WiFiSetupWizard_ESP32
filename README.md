@@ -27,9 +27,9 @@ Some features that are missing and can be added in the future include:
  - [ ] WEP support for networks
  - [ ] 
 ## Licensing
-
+This library is licensed under the MIT license. Please refer to the license for terms of use.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTEzMzc0OTU0MzEsMTU1ODUwMjgyNSwxNT
-g4NzQ4MDMwLDIwNDUxNjYyNjEsMTk2ODY0MTM0MywtNzcxMzk2
-ODY0XX0=
+eyJoaXN0b3J5IjpbLTE0MDMxNzQ2NTgsLTEzMzc0OTU0MzEsMT
+U1ODUwMjgyNSwxNTg4NzQ4MDMwLDIwNDUxNjYyNjEsMTk2ODY0
+MTM0MywtNzcxMzk2ODY0XX0=
 -->

@@ -13,6 +13,13 @@ ESP32_WiFiSetup is designed to be a simple to use WiFi setup utility for the Esp
 **PlatformIO**  
 If you are using PlatformIO, place the /lib/WiFiSetup folder from this repository into the /lib folder of your project. Then, follow the example in /src/main.cpp to incorporate the wizard into your project.
 **Arduino**
+To use the library, copy the /lib/WiFiSetup folder from the repository and paste it into your Arduino libraries folder:
+*Typical locations:*
+- Windows: C:\Users\your_user\My Documents\Arduino\libraries
+- macOS: /Users/your_user/Documents/Arduino/libraries
+- Linux: /home/your_user/Arduino/libraries
+Then, restart your Arduino IDE and the library should appear in the Sketch/Include Library menu as WiFiSetup, as shown:
+
 
 ## Future additions
 Some features that are missing and can be added in the future include:
@@ -21,6 +28,6 @@ Some features that are missing and can be added in the future include:
  - [ ] 
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE5MDU1Mjk3NDMsMjA0NTE2NjI2MSwxOT
-Y4NjQxMzQzLC03NzEzOTY4NjRdfQ==
+eyJoaXN0b3J5IjpbMTU4ODc0ODAzMCwyMDQ1MTY2MjYxLDE5Nj
+g2NDEzNDMsLTc3MTM5Njg2NF19
 -->

@@ -7,10 +7,10 @@ ESP32_WiFiSetup is designed to be a simple to use WiFi setup utility for the Esp
  - WiFi credentials storage using the NVS (non-volatile storage) on the ESP32
 
 ## Future additions
-Some features that are missing and can be added in the future include
+Some features that are missing and can be added in the future include:
 
  - [ ] List item
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTExNjA3MjExM119
+eyJoaXN0b3J5IjpbLTU0ODEzOTA5NV19
 -->

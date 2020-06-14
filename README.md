@@ -9,8 +9,9 @@ ESP32_WiFiSetup is designed to be a simple to use WiFi setup utility for the Esp
 ## Future additions
 Some features that are missing and can be added in the future include:
 
- - [ ] List item
+ - [ ] WEP support for networks
+ - [ ] 
 
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTU0ODEzOTA5NV19
+eyJoaXN0b3J5IjpbLTc3MTM5Njg2NF19
 -->

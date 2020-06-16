@@ -31,8 +31,8 @@ void WiFiSetup::init() {
 int WiFiSetup::scan_networks() {
     // Scan the networks and print the number of networks found
     int number_networks = WiFi.scanNetworks();
-    Serial.print("WiFi Status");
-    Serial.println(WiFi.status());
+    //Serial.print("WiFi Status");
+    //Serial.println(WiFi.status());
 
     Serial.print("Number of networks found: ");
     Serial.println(number_networks);
@@ -133,7 +133,7 @@ void WiFiSetup::print_networks_simple() {
 void WiFiSetup::refresh_networks() {
     // Clear the network vector
     _network_data_vector.clear();
-    Serial.println("Networks cleared.");
+    //Serial.println("Networks cleared.");
     // Rescan and print WiFi networks to the terminal
     scan_networks();
     
@@ -226,7 +226,7 @@ void WiFiSetup::enter_passphrase() {
         Serial.println(strncmp(_wpa_passphrase, correct_pass, 1));
     #endif
     _wpa_passphrase[length_pass] = '\0';
-    Serial.println(_wpa_passphrase);
+    //Serial.println(_wpa_passphrase);
 }
 
 void WiFiSetup::connect_to_network() {
@@ -256,7 +256,7 @@ void WiFiSetup::connect_to_network() {
         start_timeout_timer(10);
     }
     _conn_type = create_conn_type_value();
-    Serial.print(_conn_type);
+    //Serial.print(_conn_type);
     display_establishing_conn_prompt();
 
     // Once connected, save the values to NVS
@@ -548,7 +548,7 @@ bool WiFiSetup::connect_using_nvs_settings() {
 
     // Get the connection type
     _conn_type = (ConnectionType)prefs.getUChar("CONN_TYPE", 0);
-    Serial.println(_conn_type);
+    //Serial.println(_conn_type);
     if (_conn_type == UNKNOWN) {
         prefs.end();
         Serial.println("Unknown connection type - need to reconfigure");
@@ -556,6 +556,7 @@ bool WiFiSetup::connect_using_nvs_settings() {
     } else {
         // Get SSID
         _selected_ssid = prefs.getString("SSID", "");
+        Serial.print("Stored SSID: ");
         Serial.println(_selected_ssid);
         // Set up DNS as required
         config_dns_nvs();
@@ -563,6 +564,7 @@ bool WiFiSetup::connect_using_nvs_settings() {
         if (_conn_type == WPA_DHCP || _conn_type == WPA_STATIC ||
             _conn_type == WPA_STATIC_DNS) {
             String pass = prefs.getString("WPA_PASS", "");
+            Serial.print("Stored WPA passphrase: ");
             Serial.print(pass);
             WiFi.begin(_selected_ssid.c_str(), pass.c_str(), 0, NULL, true);
         } else {

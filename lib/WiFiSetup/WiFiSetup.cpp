@@ -558,6 +558,12 @@ bool WiFiSetup::connect_using_nvs_settings() {
         _selected_ssid = prefs.getString("SSID", "");
         Serial.print("Stored SSID: ");
         Serial.println(_selected_ssid);
+        // Run a scan to check that the network is in range
+        scan_networks();
+        // Check the SSID exists - if it doesn't, then return true
+        if (check_ssid_exists_vector(_selected_ssid) == false) {
+            return true;
+        }
         // Set up DNS as required
         config_dns_nvs();
         // Connect as required
@@ -615,6 +621,16 @@ bool WiFiSetup::skip_nvs_connection() {
         time_count++;
         if (time_count == 5) {
             return false;
+        }
+    }
+    return false;
+}
+
+bool WiFiSetup::check_ssid_exists_vector(String ssid) {
+    std::vector<NetworkData>::iterator it;
+    for (it = _network_data_vector.begin(); it != _network_data_vector.end(); ++it) {
+        if (ssid.equals((*it).network_ssid)) {
+            return true;
         }
     }
     return false;

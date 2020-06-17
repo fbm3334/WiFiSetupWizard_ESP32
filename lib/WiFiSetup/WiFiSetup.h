@@ -202,6 +202,12 @@ class WiFiSetup {
          * */
         bool reconfig_prompt();
 
+        /** Iterates through the network vector to see whether an SSID exists
+         * \param ssid  SSID to check
+         * \return True if SSID found, false if not found
+         */
+        bool check_ssid_exists_vector(String ssid);
+
     private:
         // Hardware timer - used for connection timeout
         static hw_timer_t * _timer;

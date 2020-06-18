@@ -18,7 +18,7 @@ To use the library, copy the /lib/WiFiSetup folder from the repository and paste
 - macOS: /Users/your_user/Documents/Arduino/libraries
 - Linux: /home/your_user/Arduino/libraries
 Then, restart your Arduino IDE and the library should appear in the Sketch/Include Library menu as WiFiSetup, as shown:
-![Display of Arduino library location](https://github.com/fbm3334/WiFiSetupWizard_ESP32/blob/master/img/ArduinoLib.png)
+![Arduino library location in Sketch menu](https://github.com/fbm3334/WiFiSetupWizard_ESP32/blob/master/img/ArduinoLib_nonretina.png)
 
 ## Future additions
 Some features that are missing and can be added in the future include:
@@ -28,8 +28,8 @@ Some features that are missing and can be added in the future include:
 ## Licensing
 This library is licensed under the MIT license. Please refer to the license for terms of use.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbNjg4NTk4ODY0LC0xMDY4ODEwMzIzLC04MD
-I5OTYwMzcsODc2MTUyNTM4LC0xNDAzMTc0NjU4LC0xMzM3NDk1
-NDMxLDE1NTg1MDI4MjUsMTU4ODc0ODAzMCwyMDQ1MTY2MjYxLD
-E5Njg2NDEzNDMsLTc3MTM5Njg2NF19
+eyJoaXN0b3J5IjpbLTEwMTk1Mzg2MDgsNjg4NTk4ODY0LC0xMD
+Y4ODEwMzIzLC04MDI5OTYwMzcsODc2MTUyNTM4LC0xNDAzMTc0
+NjU4LC0xMzM3NDk1NDMxLDE1NTg1MDI4MjUsMTU4ODc0ODAzMC
+wyMDQ1MTY2MjYxLDE5Njg2NDEzNDMsLTc3MTM5Njg2NF19
 -->

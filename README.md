@@ -24,12 +24,12 @@ Then, restart your Arduino IDE and the library should appear in the Sketch/Inclu
 Some features that are missing and can be added in the future include:
  - [ ] ESP8266 support
  - [ ] Status LED support (e.g. using an RGB LED to indicate connection status)
- - [ ] WEP encryption support - I have decided not to add it as WEP has been deprecated since 2004 and is extremely insecure (see [this article](http://www.isaac.cs.berkeley.edu/isaac/wep-faq.html) from 
+ - [ ] WEP encryption support - I have decided not to add it as WEP has been deprecated since 2004 and is extremely insecure (see [this article](http://www.isaac.cs.berkeley.edu/isaac/wep-faq.html) from researchers from the University of California, Berkeley for details).
 ## Licensing
 This library is licensed under the MIT license. Please refer to the license for terms of use.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTAxMjYxNjYxNiwtMTA2ODgxMDMyMywtOD
-AyOTk2MDM3LDg3NjE1MjUzOCwtMTQwMzE3NDY1OCwtMTMzNzQ5
-NTQzMSwxNTU4NTAyODI1LDE1ODg3NDgwMzAsMjA0NTE2NjI2MS
-wxOTY4NjQxMzQzLC03NzEzOTY4NjRdfQ==
+eyJoaXN0b3J5IjpbNjg4NTk4ODY0LC0xMDY4ODEwMzIzLC04MD
+I5OTYwMzcsODc2MTUyNTM4LC0xNDAzMTc0NjU4LC0xMzM3NDk1
+NDMxLDE1NTg1MDI4MjUsMTU4ODc0ODAzMCwyMDQ1MTY2MjYxLD
+E5Njg2NDEzNDMsLTc3MTM5Njg2NF19
 -->

@@ -261,10 +261,8 @@ void WiFiSetup::connect_to_network() {
 
     // Once connected, save the values to NVS
     if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("Saving settings...");
         save_settings_to_nvs();
-    } else {
-        // Call restart of ESP32 - stops looping
-        ESP.restart();
     }
 
 }
@@ -420,18 +418,17 @@ void WiFiSetup::setup_wizard() {
     bool skip_nvs = skip_nvs_connection();
     // Attempt to connect using the NVS settings
     if (skip_nvs == false) {
-        while (_attempt_connect_nvs == false) {
-            Serial.println("Connecting using NVS settings...");
-            _attempt_connect_nvs = connect_using_nvs_settings();
-            if (WiFi.status() == WL_CONNECTED) {
-                return; // Quit setup wizard if connected
-            }
+        Serial.println("Connecting using NVS settings...");
+        connect_using_nvs_settings();
+        if (WiFi.status() == WL_CONNECTED) {
+            return; // Quit setup wizard if connected
+        } else {
+            WiFi.disconnect(); // Force disconnection
         }
     }
 
     // Refresh the networks
     refresh_networks();
-
 
     // User prompt - 'a' for advanced view, 'd' to connect to a network using
     // DHCP and 's' to connect to a network using a static IP
@@ -539,7 +536,7 @@ void WiFiSetup::save_settings_to_nvs() {
             }
         }
     }
-
+    Serial.println("Finished saving.");
     prefs.end(); // Finish saving
 }
 
@@ -562,11 +559,19 @@ bool WiFiSetup::connect_using_nvs_settings() {
         scan_networks();
         // Check the SSID exists - if it doesn't, then return true
         if (check_ssid_exists_vector(_selected_ssid) == false) {
+            Serial.println("Saved SSID not found - opening connection wizard");
             return true;
         }
-        // Set up DNS as required
-        config_dns_nvs();
-        // Connect as required
+        
+        config_dns_nvs(); // Set up DNS as required
+        begin_nvs(); // Begin connection
+    }
+    prefs.end();
+    return true;
+}
+
+void WiFiSetup::begin_nvs() {
+    // Connect as required
         if (_conn_type == WPA_DHCP || _conn_type == WPA_STATIC ||
             _conn_type == WPA_STATIC_DNS) {
             String pass = prefs.getString("WPA_PASS", "");
@@ -579,12 +584,6 @@ bool WiFiSetup::connect_using_nvs_settings() {
         prefs.end(); // Don't need the NVS after this point
         start_timeout_timer(10);
         display_establishing_conn_prompt();
-        if (WiFi.status() == WL_CONNECTED) {
-            return true;
-        }
-    }
-    prefs.end();
-    return false;
 }
 
 void WiFiSetup::config_dns_nvs() {

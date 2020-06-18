@@ -183,6 +183,9 @@ class WiFiSetup {
          */
         bool connect_using_nvs_settings();
 
+        /** Begin WiFi using NVS parameters */
+        void begin_nvs();
+
         /** Configure the DNS using NVS settings */
         void config_dns_nvs();
 

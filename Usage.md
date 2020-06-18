@@ -23,4 +23,20 @@ When using stored settings, connection is designed to not require a serial conne
 
 If connection using stored settings is unsuccessful, then the main wizard will be launched.
 ### Connection wizard
+The connection wizard can either be launched by pressing Space in the first 5 seconds after serial connection is established or if connection using stored settings is unsuccessful.
+
+The main view of the connection wizard has four options, which are selected by pressing the appropriate key on the keyboard:
+
+ - a - Advanced network view
+	 - Displays a more advanced view of the networks, showing the following properties:
+		 - SSID
+		 - Signal strength in dBm
+		 - Signal strength in bars
+		 - MAC address of access point
+		 - Encryption type
+		 - 2.4GHz channel
+	- Press Space to exit.
+- d - Connect using DHCP
+- s - Connect using static IP/custom DNS
+- r - Rescan networks (restarts the wizard)
 

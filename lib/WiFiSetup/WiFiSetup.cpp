@@ -350,8 +350,12 @@ bool WiFiSetup::read_chars_serial(char* char_array, int length_char) {
     while (Serial.available() > 0) {
         recv_char = Serial.read();
 
-        if (recv_char == 10) {
+        if (recv_char == 10) { // Carria
             // Do nothing
+        } else if (recv_char == 8) { // Backspace
+            ndx--; // Decrement ndx by 1
+            if (ndx < 0) { ndx = 0; }
+            char_array[ndx] = 0; // Zero array at new ndx pos
         } else if (recv_char != end_marker) {
             //Serial.print(recv_char);
             char_array[ndx] = recv_char;
@@ -363,11 +367,7 @@ bool WiFiSetup::read_chars_serial(char* char_array, int length_char) {
                 ndx = length_char - 1;
             }
         // Backspace
-        } else if (recv_char == 8) {
-            Serial.print(recv_char);
-            ndx--; // Decrement ndx by 1
-            char_array[ndx] = 0; // Zero array at new ndx pos
-        } else {
+        }  else {
             char_array[ndx] = '\0'; // Terminate the string
             #ifdef STRING_DEBUG
                 Serial.println(ndx);

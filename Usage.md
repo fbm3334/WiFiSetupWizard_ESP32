@@ -1,5 +1,7 @@
 This document explains how to use the WiFi Setup Wizard to set up WiFi connections. For examples of incorporating the wizard into your program, look in the examples folder.
 
+The wizard supports open and WPA/WPA2 encrypted networks - WPA Enterprise and WEP are not supported (the former due to a lack of support within the ESP32 libraries and the latter due to security issues and lack of use in 2020).
+
 # Terminal emulation
 You will need to use a terminal emulation program in order to use the wizard. I use [CoolTerm](https://freeware.the-meiers.org), but other terminal emulation programs are available. In order to get the best experience, I recommend the following settings:
 
@@ -39,4 +41,23 @@ The main view of the connection wizard has four options, which are selected by p
 - d - Connect using DHCP
 - s - Connect using static IP/custom DNS
 - r - Rescan networks (restarts the wizard)
+
+#### Using DHCP
+1. Press 'd' on the keyboard to enter DHCP connection mode. 
+2. Then, select the network you wish to connect to from the list by typing its number and pressing Enter.
+3. If WPA encryption is being used, you will need to enter the passphrase by typing it in and pressing Enter.
+4. Conection will be attempted - if the connection is successful, the SSID and password will be saved into non-volatile storage. Otherwise, the wizard will restart.
+
+#### Using static IP/custom DNS
+1. Press 's' on the keyboard to enter static IP/custom DNS connection mode. 
+2. The following IP addresses need to be entered in this order when prompted:
+    - Static IP
+    - Gateway IP (router IP)
+    - Subnet mask
+   
+To enter these, type in the IP address in the usual format (e.g. to enter 255.255.255.0, simply type in 255.255.255.0) and press Enter.
+3. You will be prompted to set up a custom DNS - press 'd' to use a custom DNS or 'n' to use the gateway/router DNS. DNS IP addresses are entered in the same way as for the static IP etc.
+4. Then, select the network you wish to connect to from the list by typing its number and pressing Enter.
+5. If WPA encryption is being used, you will need to enter the passphrase by typing it in and pressing Enter.
+6. Conection will be attempted - if the connection is successful, the SSID and password will be saved into non-volatile storage. Otherwise, the wizard will restart.
 

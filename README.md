@@ -21,6 +21,9 @@ Then, restart your Arduino IDE and the library should appear in the Sketch/Inclu
 
 ![WiFiSetup library location in Sketch menu in Arduino IDE](https://github.com/fbm3334/WiFiSetupWizard_ESP32/blob/master/img/ArduinoLib_nonretina.png)
 
+### Using the wizard
+Please refer to [Usage.md](https://github.com/fbm3334/WiFiSetupWizard_ESP32/blob/master/Usage.md) for instructions on using the wizard.
+
 ## Future additions
 Some features that are missing and can be added in the future include:
  - [ ] ESP8266 support

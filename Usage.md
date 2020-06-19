@@ -43,6 +43,9 @@ The main view of the connection wizard has four options, which are selected by p
 - r - Rescan networks (restarts the wizard)
 
 #### Using DHCP
+
+![Connection using DHCP - CoolTerm output](https://github.com/fbm3334/WiFiSetupWizard_ESP32/blob/master/img/Connect_DHCP.png)
+
 1. Press 'd' on the keyboard to enter DHCP connection mode. 
 2. Then, select the network you wish to connect to from the list by typing its number and pressing Enter.
 3. If WPA encryption is being used, you will need to enter the passphrase by typing it in and pressing Enter.
@@ -55,7 +58,8 @@ The main view of the connection wizard has four options, which are selected by p
     - Gateway IP (router IP)
     - Subnet mask
    
-To enter these, type in the IP address in the usual format (e.g. to enter 255.255.255.0, simply type in 255.255.255.0) and press Enter.
+    To enter these, type in the IP address in the usual format (e.g. to enter 255.255.255.0, simply type in 255.255.255.0) and press Enter.
+
 3. You will be prompted to set up a custom DNS - press 'd' to use a custom DNS or 'n' to use the gateway/router DNS. DNS IP addresses are entered in the same way as for the static IP etc.
 4. Then, select the network you wish to connect to from the list by typing its number and pressing Enter.
 5. If WPA encryption is being used, you will need to enter the passphrase by typing it in and pressing Enter.

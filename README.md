@@ -32,9 +32,9 @@ Some features that are missing and can be added in the future include:
 ## Licensing
 This library is licensed under the MIT license. Please refer to the license for terms of use.
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTI5MzE0MjQzNywtNTY2OTk0MTU3LDY4OD
-U5ODg2NCwtMTA2ODgxMDMyMywtODAyOTk2MDM3LDg3NjE1MjUz
-OCwtMTQwMzE3NDY1OCwtMTMzNzQ5NTQzMSwxNTU4NTAyODI1LD
-E1ODg3NDgwMzAsMjA0NTE2NjI2MSwxOTY4NjQxMzQzLC03NzEz
-OTY4NjRdfQ==
+eyJoaXN0b3J5IjpbNTYzMjMyNjc5LC01NjY5OTQxNTcsNjg4NT
+k4ODY0LC0xMDY4ODEwMzIzLC04MDI5OTYwMzcsODc2MTUyNTM4
+LC0xNDAzMTc0NjU4LC0xMzM3NDk1NDMxLDE1NTg1MDI4MjUsMT
+U4ODc0ODAzMCwyMDQ1MTY2MjYxLDE5Njg2NDEzNDMsLTc3MTM5
+Njg2NF19
 -->
